@@ -1,0 +1,7 @@
+Package: fastlm
+Title: linear model using MTL4
+Version: 0.0
+Maintainer: Whit Armstrong <armstrong.whit@gmail.com>
+Author: Whit Armstrong <armstrong.whit@gmail.com>
+Description: linear model using MTL4
+License: GPL-3
