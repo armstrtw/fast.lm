@@ -106,8 +106,6 @@ SEXP expanding_panel(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_
   R_len_t NR = length(VECTOR_ELT(panel_sexp,0));
   R_len_t NC = length(left_hand_sides_sexp);
   int min_dates = INTEGER(min_dates_sexp)[0];
-  cout << "NR:" << NR << endl;
-  cout << "min_dates:" << min_dates << endl;
   if(min_dates > NR) {
     cerr << "rnow(panel) must be > min.dates." << endl;
     return R_NilValue;
@@ -121,14 +119,13 @@ SEXP expanding_panel(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_
     theData[i] = getColFromName(panel_sexp,CHAR(STRING_ELT(left_hand_sides_sexp,i)));
   }
   vec x;
-  PROTECT(ans = allocMatrix(REALSXP, NR - min_dates + 1, NC));
+  int ans_NR = NR - min_dates + 1;
+  PROTECT(ans = allocMatrix(REALSXP, ans_NR, NC));
   double* ans_ptr = REAL(ans);
-  for(int i = min_dates; i < (NR-1); i++) {
-    cout << "i:" << i << endl;
+  for(int i = min_dates - 1; i < NR; i++) {
     single_panel_lm( x, theData, rhs, i);
     for(int j = 0; j < NC; j++) {
-      cout << "j:" << j << endl;
-      ans_ptr[j*NR] = x[j];
+      ans_ptr[j*ans_NR] = x[j];
     }
     ++ans_ptr;
   }
