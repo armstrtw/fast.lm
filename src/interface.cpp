@@ -86,10 +86,10 @@ SEXP panel_lm(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_s
   return ans;
 }
 
-void single_panel_lm(vec& x, vector<double*>& lhs_p, double* rhs, const int NR) {
+void single_panel_lm(vec& x, vector<double*>& lhs_p, double* rhs, const int NR, double* scratch) {
   const int NC = lhs_p.size();
   vec b(rhs, NR, false);
-  mat A(NR, NC);
+  mat A(scratch, NR, NC, false);
   for(int i = 0; i < NC; i++) {
     std::copy(lhs_p[i], lhs_p[i] + NR, &(A.col(i)[0]));
   }
@@ -118,17 +118,21 @@ SEXP expanding_panel(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_
   for(int i = 0; i < NC; i++) {
     theData[i] = getColFromName(panel_sexp,CHAR(STRING_ELT(left_hand_sides_sexp,i)));
   }
+  // this is the biggest regression we will do
+  // during this call, smaller subsets can use the same scratch space
+  double* scratch = new double[NR * NC];
   vec x;
   int ans_NR = NR - min_dates + 1;
   PROTECT(ans = allocMatrix(REALSXP, ans_NR, NC));
   double* ans_ptr = REAL(ans);
   for(int i = min_dates - 1; i < NR; i++) {
-    single_panel_lm( x, theData, rhs, i);
+    single_panel_lm( x, theData, rhs, i + 1, scratch);
     for(int j = 0; j < NC; j++) {
       ans_ptr[j*ans_NR] = x[j];
     }
     ++ans_ptr;
   }
+  delete []scratch;
   UNPROTECT(1);
   return ans;
 }

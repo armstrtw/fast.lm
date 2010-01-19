@@ -22,7 +22,7 @@
 #include <armadillo>
 #include <Rinternals.h>
 
-void single_panel_lm(arma::vec& x, std::vector<double*>& lhs_p, double* rhs, const int NR);
+void single_panel_lm(arma::vec& x, std::vector<double*>& lhs_p, double* rhs, const int NR, double* scratch);
 
 extern "C" {
   SEXP fast_lm(SEXP A_sexp, SEXP b_sexp);
