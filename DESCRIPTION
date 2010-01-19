@@ -6,3 +6,4 @@ Author: Whit Armstrong <armstrong.whit@gmail.com>
 Description: linear model using Armadillo
 License: GPL-3
 URL: http://github.com/armstrtw/fast.lm, http://arma.sourceforge.net
+SystemRequirements: LAPACK, Armadillo
