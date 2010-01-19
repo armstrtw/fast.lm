@@ -1,3 +1,4 @@
 useDynLib(fastlm)
 export(fast.lm,
-       fast.panel)
+       panel.lm,
+       expanding.panel)

@@ -18,8 +18,15 @@
 #ifndef INTERFACE_HPP
 #define INTERFACE_HPP
 
+#include <vector>
+#include <armadillo>
+#include <Rinternals.h>
+
+void single_panel_lm(arma::vec& x, std::vector<double*>& lhs_p, double* rhs, const int NR);
+
 extern "C" {
   SEXP fast_lm(SEXP A_sexp, SEXP b_sexp);
+  SEXP panel_lm(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_sexp, SEXP asofdate_column_sexp);
   SEXP expanding_panel(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_sexp, SEXP asofdate_column_sexp, SEXP min_dates);
 }
 
