@@ -3,7 +3,6 @@ Title: linear model and variations using Armadillo
 Version: 0.1
 Maintainer: Whit Armstrong <armstrong.whit@gmail.com>
 Author: Whit Armstrong <armstrong.whit@gmail.com>
-Depends: Armadillo
 Description: linear model using Armadillo
 License: GPL-3
 URL: http://github.com/armstrtw/fast.lm, http://arma.sourceforge.net

@@ -1,2 +1,3 @@
 useDynLib(fastlm)
-export(fastlm)
+export(fast.lm,
+       fast.panel)

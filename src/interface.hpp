@@ -20,6 +20,7 @@
 
 extern "C" {
   SEXP fast_lm(SEXP A_sexp, SEXP b_sexp);
+  SEXP expanding_panel(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_sexp, SEXP asofdate_column_sexp, SEXP min_dates);
 }
 
 #endif // INTERFACE_HPP
