@@ -1,4 +1,4 @@
-Package: fastlm
+Package: fast.lm
 Title: linear model and variations using Armadillo
 Version: 0.1
 Maintainer: Whit Armstrong <armstrong.whit@gmail.com>

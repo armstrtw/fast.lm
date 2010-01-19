@@ -15,21 +15,15 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>. //
 ///////////////////////////////////////////////////////////////////////////
 
-#ifndef INTERFACE_HPP
-#define INTERFACE_HPP
+#ifndef INDEX_GE_HPP
+#define INDEX_GE_HPP
 
-#include <vector>
-#include <armadillo>
-#include <Rinternals.h>
-
-double* getColFromName(SEXP x, const char* str);
-void single_panel_lm(arma::vec& x, std::vector<double*>& lhs_p, double* rhs, const int NR, double* scratch);
-
-extern "C" {
-  SEXP fast_lm(SEXP A_sexp, SEXP b_sexp);
-  SEXP fast_lm_dataframe(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_sexp);
-  SEXP expanding_lm_dataframe(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_sexp, SEXP min_rows_sexp);
-  SEXP expanding_panel_dataframe(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_sexp, SEXP asofdate_column_sexp, SEXP min_dates_sexp);
+template<typename T, typename U>
+T index_ge(T start, T end, U value) {
+  while(start < end && *start <= value) {
+    ++start;
+  }
+  return start;
 }
 
-#endif // INTERFACE_HPP
+#endif // INDEX_GE_HPP

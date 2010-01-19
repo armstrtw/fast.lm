@@ -1,4 +1,5 @@
-useDynLib(fastlm)
+useDynLib(fast.lm)
 export(fast.lm,
-       panel.lm,
-       expanding.panel)
+       fast.lm.df,
+       expanding.lm.df,
+       expanding.panel.df)

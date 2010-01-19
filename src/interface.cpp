@@ -22,6 +22,7 @@
 #include <armadillo>
 #include <Rinternals.h>
 #include "interface.hpp"
+#include "index.ge.hpp"
 
 using namespace arma;
 using std::vector;
@@ -60,13 +61,10 @@ double* getColFromName(SEXP x, const char* str) {
   return ans;
 }
 
-// assumes that panel_sexp is already sorted by asofdate
-SEXP panel_lm(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_sexp, SEXP asofdate_column_sexp) {
+SEXP fast_lm_dataframe(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_sexp) {
   SEXP ans;
   R_len_t NR = length(VECTOR_ELT(panel_sexp,0));
   R_len_t NC = length(left_hand_sides_sexp);
-  SEXP nms = getAttrib(panel_sexp, R_NamesSymbol);
-  double* dts = getColFromName(panel_sexp,"asofdate");
   vector<double*> theData(NC);
   for(int i = 0; i < NC; i++) {
     theData[i] = getColFromName(panel_sexp,CHAR(STRING_ELT(left_hand_sides_sexp,i)));
@@ -96,23 +94,20 @@ void single_panel_lm(vec& x, vector<double*>& lhs_p, double* rhs, const int NR, 
   solve( x, A, b);
 }
 
-// assumes that panel_sexp is already sorted by asofdate
-SEXP expanding_panel(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_sexp, SEXP asofdate_column_sexp, SEXP min_dates_sexp) {
+// assumes that panel_sexp is already sorted by timestamp
+SEXP expanding_lm_dataframe(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_sexp, SEXP min_rows_sexp) {
   SEXP ans;
-  if(TYPEOF(min_dates_sexp) != INTSXP) {
-    cerr << "min.dates_sexp must be an integer." << endl;
+  if(TYPEOF(min_rows_sexp) != INTSXP) {
+    cerr << "min.rows must be an integer." << endl;
     return R_NilValue;
   }
   R_len_t NR = length(VECTOR_ELT(panel_sexp,0));
   R_len_t NC = length(left_hand_sides_sexp);
-  int min_dates = INTEGER(min_dates_sexp)[0];
-  if(min_dates > NR) {
-    cerr << "rnow(panel) must be > min.dates." << endl;
+  int min_rows = INTEGER(min_rows_sexp)[0];
+  if(min_rows > NR) {
+    cerr << "nrow(panel) must be > min.rows." << endl;
     return R_NilValue;
   }
-
-  SEXP nms = getAttrib(panel_sexp, R_NamesSymbol);
-  double* dts = getColFromName(panel_sexp,"asofdate");
   double* rhs = getColFromName(panel_sexp,CHAR(STRING_ELT(right_hand_side_sexp,0)));
   vector<double*> theData(NC);
   for(int i = 0; i < NC; i++) {
@@ -122,11 +117,56 @@ SEXP expanding_panel(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_
   // during this call, smaller subsets can use the same scratch space
   double* scratch = new double[NR * NC];
   vec x;
-  int ans_NR = NR - min_dates + 1;
+  int ans_NR = NR - min_rows + 1;
   PROTECT(ans = allocMatrix(REALSXP, ans_NR, NC));
   double* ans_ptr = REAL(ans);
-  for(int i = min_dates - 1; i < NR; i++) {
+  for(int i = min_rows - 1; i < NR; i++) {
     single_panel_lm( x, theData, rhs, i + 1, scratch);
+    for(int j = 0; j < NC; j++) {
+      ans_ptr[j*ans_NR] = x[j];
+    }
+    ++ans_ptr;
+  }
+  delete []scratch;
+  UNPROTECT(1);
+  return ans;
+}
+
+// assumes that panel_sexp is already sorted by asofdate
+SEXP expanding_panel_dataframe(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_sexp, SEXP asofdate_column_sexp, SEXP min_dates_sexp) {
+  SEXP ans;
+  if(TYPEOF(min_dates_sexp) != INTSXP) {
+    cerr << "min.dates must be an integer." << endl;
+    return R_NilValue;
+  }
+  R_len_t NR = length(VECTOR_ELT(panel_sexp,0));
+  R_len_t NC = length(left_hand_sides_sexp);
+  double* dts = getColFromName(panel_sexp,CHAR(STRING_ELT(asofdate_column_sexp,0)));
+  vector<double> unique_dates;
+  std::unique_copy(dts,dts+NR,back_inserter(unique_dates));
+  int min_dates = INTEGER(min_dates_sexp)[0];
+  if(min_dates > unique_dates.size()) {
+    cerr << "size of unique dates must be > min.dates." << endl;
+    return R_NilValue;
+  }
+  double* rhs = getColFromName(panel_sexp,CHAR(STRING_ELT(right_hand_side_sexp,0)));
+  vector<double*> theData(NC);
+  for(int i = 0; i < NC; i++) {
+    theData[i] = getColFromName(panel_sexp,CHAR(STRING_ELT(left_hand_sides_sexp,i)));
+  }
+  // this is the biggest regression we will do
+  // during this call, smaller subsets can use the same scratch space
+  double* scratch = new double[NR * NC];
+  vec x;
+  int ans_NR = unique_dates.size()  - min_dates + 1;
+  PROTECT(ans = allocMatrix(REALSXP, ans_NR, NC));
+  double* ans_ptr = REAL(ans);
+
+  // data cutoff for regression (start at row 0)
+  double* subset = dts;
+  for(size_t i = min_dates - 1; i < unique_dates.size(); i++) {
+    subset = index_ge(subset, dts + NR, unique_dates[i]);
+    single_panel_lm( x, theData, rhs, std::distance(dts,subset), scratch);
     for(int j = 0; j < NC; j++) {
       ans_ptr[j*ans_NR] = x[j];
     }
