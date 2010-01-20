@@ -6,7 +6,7 @@ fast.lm.df <- function(panel, right.hand.side, left.hand.sides) {
     .Call("fast_lm_dataframe",panel, right.hand.side, left.hand.sides, PACKAGE="fast.lm")
 }
 
-expanding.lm.df <- function(panel, right.hand.side, left.hand.sides, min.rows) {
+expanding.lm.df <- function(panel, right.hand.side, left.hand.sides, min.rows=30L) {
     .Call("expanding_lm_dataframe",panel, right.hand.side, left.hand.sides, min.rows, PACKAGE="fast.lm")
 }
 
