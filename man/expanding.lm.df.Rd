@@ -48,8 +48,8 @@ do.running.lm <- function(panel, right.hand.side, left.hand.sides, min.obs=30L) 
     ans
 }
 
-NC <- 5
-NR <- 1e3
+NC <- 10
+NR <- 1e4
 A <- as.data.frame(asofdate=1:NR,matrix(rnorm(NR*NC),nrow=NR,ncol=NC))
 colnames(A) <- letters[1:NC]
 flm.time <- system.time(ans <- expanding.lm.df(panel=A, right.hand.side="a",left.hand.sides=c("b","c","d","e")))

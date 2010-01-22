@@ -28,8 +28,8 @@ fast.lm(A, x)
   \code{\link{lm}} the standard lm method.
 }
 \examples{
-NC <- 5
-NR <- 1e3
+NC <- 10
+NR <- 1e5
 A <- matrix(rnorm(NR*NC),nrow=NR,ncol=NC)
 b <- rnorm(NR)
 flm.time <- system.time(ans <- fast.lm(A,b))

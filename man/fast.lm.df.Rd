@@ -33,8 +33,8 @@ fast.lm.df(panel, right.hand.side, left.hand.sides)
   \code{\link{lm}} the standard lm method.
 }
 \examples{
-NC <- 5
-NR <- 1e4
+NC <- 10
+NR <- 1e5
 A <- as.data.frame(asofdate=1:NR,matrix(rnorm(NR*NC),nrow=NR,ncol=NC))
 colnames(A) <- letters[1:NC]
 flm.time <- system.time(ans <- fast.lm.df(panel=A, right.hand.side="a",left.hand.sides=c("b","c","d","e")))
@@ -45,7 +45,6 @@ bmark.times <- rbind(flm.time,
                      lm.time,
                      lm.time/flm.time)
 print(bmark.times)
-print(ans)
 ans.compare <- cbind(ans,lm.ans)
 }
 \keyword{regression}
