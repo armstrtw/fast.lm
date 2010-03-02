@@ -32,7 +32,7 @@ using std::endl;
 SEXP fast_lm(SEXP A_sexp, SEXP b_sexp) {
   SEXP ans;
   if(TYPEOF(A_sexp) != REALSXP || TYPEOF(b_sexp) != REALSXP) {
-    cerr << "A and b must be vector<double>." << endl;
+    cerr << "A and b must be matrix<double> or vector<double>." << endl;
     return R_NilValue;
   }
   int NR = nrows(A_sexp);
