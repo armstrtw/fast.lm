@@ -2,4 +2,5 @@ useDynLib(fast.lm)
 export(fast.lm,
        fast.lm.df,
        expanding.lm.df,
-       expanding.panel.df)
+       expanding.panel.df,
+       group.lm.df)

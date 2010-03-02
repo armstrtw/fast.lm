@@ -176,3 +176,67 @@ SEXP expanding_panel_dataframe(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP 
   UNPROTECT(1);
   return ans;
 }
+
+void get_unique(vector<int>& ans, const ivec& x) {
+  ivec scratch = sort(x);
+  ans.push_back(scratch[0]);
+  for(size_t i = 1; i < scratch.n_rows; i++) {
+    if(scratch[i] != scratch[i - 1]) {
+      ans.push_back(scratch[i]);
+    }
+  }
+}
+
+vec do_single_group_lm(mat& A, vec& b, ivec& groups, int group) {
+  uvec mask(groups == group);
+  uint new_NR = sum(mask);
+  mat A_sub(new_NR,A.n_cols);
+  vec b_sub(new_NR);
+  uint count = 0;
+  for(uint i = 0; i < A.n_rows; i++) {
+    if(mask[i]) {
+      A_sub.row(count) = A.row(i);
+      b_sub[count] = b[i];
+      ++count;
+    }
+  }
+  vec ans;
+  solve(ans, A_sub, b_sub);
+  return ans;
+}
+
+mat do_group_lm(mat& A, vec& b, ivec& groups) {
+  vector<int> unique_groups;
+  get_unique(unique_groups,groups);
+  mat group_coefs(unique_groups.size(),A.n_cols);
+  for(uint i = 0; i < unique_groups.size(); i++) {
+    group_coefs.row(i) = trans(do_single_group_lm(A, b, groups, unique_groups[i]));
+  }
+  return group_coefs;
+}
+
+SEXP group_lm_dataframe(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_sexp, SEXP groups_sexp) {
+  SEXP ans;
+  R_len_t NR = length(VECTOR_ELT(panel_sexp,0));
+  R_len_t NC = length(left_hand_sides_sexp);
+  vector<double*> theData(NC);
+  for(int i = 0; i < NC; i++) {
+    theData[i] = getColFromName(panel_sexp,CHAR(STRING_ELT(left_hand_sides_sexp,i)));
+  }
+  mat A(NR, NC);
+  for(int i = 0; i < NC; i++) {
+    std::copy(theData[i], theData[i] + NR, const_cast<double*>(A.mem));
+  }
+  vec b(getColFromName(panel_sexp,CHAR(STRING_ELT(right_hand_side_sexp,0))), NR, false);
+  vec x;
+  solve( x, A, b);
+
+  // solve for each group
+  ivec groups(INTEGER(groups_sexp), NR, false);
+  mat group_coefs = do_group_lm(A, b, groups);
+
+  PROTECT(ans = allocMatrix(REALSXP,group_coefs.n_rows,group_coefs.n_cols));
+  std::copy(group_coefs.mem,group_coefs.mem + group_coefs.n_elem, REAL(ans));
+  UNPROTECT(1);
+  return ans;
+}

@@ -13,3 +13,7 @@ expanding.lm.df <- function(panel, right.hand.side, left.hand.sides, min.rows=30
 expanding.panel.df <- function(panel, right.hand.side, left.hand.sides, asofdate.column="asofdate", min.dates=5L) {
     .Call("expanding_panel_dataframe", panel, right.hand.side, left.hand.sides, asofdate.column, min.dates, PACKAGE="fast.lm")
 }
+
+group.lm.df <- function(panel, right.hand.side, left.hand.sides, groups) {
+    .Call("group_lm_dataframe", panel, right.hand.side, left.hand.sides, groups, PACKAGE="fast.lm")
+}

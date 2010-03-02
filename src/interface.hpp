@@ -24,12 +24,16 @@
 
 double* getColFromName(SEXP x, const char* str);
 void single_panel_lm(arma::vec& x, std::vector<double*>& lhs_p, double* rhs, const int NR, double* scratch);
+void get_unique(std::vector<int>& ans, const arma::ivec& x);
+arma::rowvec do_single_group_lm(arma::mat& A, arma::vec& b, arma::ivec& groups, uint group);
+arma::mat do_group_lm(arma::mat& A, arma::vec& b, arma::ivec& groups);
 
 extern "C" {
   SEXP fast_lm(SEXP A_sexp, SEXP b_sexp);
   SEXP fast_lm_dataframe(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_sexp);
   SEXP expanding_lm_dataframe(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_sexp, SEXP min_rows_sexp);
   SEXP expanding_panel_dataframe(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_sexp, SEXP asofdate_column_sexp, SEXP min_dates_sexp);
+  SEXP group_lm_dataframe(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_sexp, SEXP groups_sexp);
 }
 
 #endif // INTERFACE_HPP
