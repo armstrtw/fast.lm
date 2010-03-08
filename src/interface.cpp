@@ -215,17 +215,15 @@ mat do_group_lm(mat& A, vec& b, ivec& groups) {
   return group_coefs;
 }
 
-SEXP group_lm_dataframe(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_sexp, SEXP groups_sexp) {
+SEXP group_lm_dataframe(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_sexp, SEXP groups_sexp, SEXP blend_sexp) {
   SEXP ans;
+  double blend = REAL(blend_sexp)[0];
   R_len_t NR = length(VECTOR_ELT(panel_sexp,0));
   R_len_t NC = length(left_hand_sides_sexp);
-  vector<double*> theData(NC);
-  for(int i = 0; i < NC; i++) {
-    theData[i] = getColFromName(panel_sexp,CHAR(STRING_ELT(left_hand_sides_sexp,i)));
-  }
   mat A(NR, NC);
   for(int i = 0; i < NC; i++) {
-    std::copy(theData[i], theData[i] + NR, const_cast<double*>(A.mem));
+    double* datap = getColFromName(panel_sexp,CHAR(STRING_ELT(left_hand_sides_sexp,i)));
+    std::copy(datap, datap + NR, &(A.col(i)[0]));
   }
   vec b(getColFromName(panel_sexp,CHAR(STRING_ELT(right_hand_side_sexp,0))), NR, false);
   vec x;
@@ -234,7 +232,9 @@ SEXP group_lm_dataframe(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_ha
   // solve for each group
   ivec groups(INTEGER(groups_sexp), NR, false);
   mat group_coefs = do_group_lm(A, b, groups);
-
+  for(uint i = 0; i < group_coefs.n_rows; i++) {
+    group_coefs.row(i) = group_coefs.row(i) * blend + trans(x * (1 - blend));
+  }
   PROTECT(ans = allocMatrix(REALSXP,group_coefs.n_rows,group_coefs.n_cols));
   std::copy(group_coefs.mem,group_coefs.mem + group_coefs.n_elem, REAL(ans));
   UNPROTECT(1);

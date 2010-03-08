@@ -7,13 +7,13 @@ fast.lm.df <- function(panel, right.hand.side, left.hand.sides) {
 }
 
 expanding.lm.df <- function(panel, right.hand.side, left.hand.sides, min.rows=30L) {
-    .Call("expanding_lm_dataframe",panel, right.hand.side, left.hand.sides, min.rows, PACKAGE="fast.lm")
+    .Call("expanding_lm_dataframe",panel, right.hand.side, left.hand.sides, as.integer(min.rows), PACKAGE="fast.lm")
 }
 
 expanding.panel.df <- function(panel, right.hand.side, left.hand.sides, asofdate.column="asofdate", min.dates=5L) {
-    .Call("expanding_panel_dataframe", panel, right.hand.side, left.hand.sides, asofdate.column, min.dates, PACKAGE="fast.lm")
+    .Call("expanding_panel_dataframe", panel, right.hand.side, left.hand.sides, asofdate.column, as.integer(min.dates), PACKAGE="fast.lm")
 }
 
-group.lm.df <- function(panel, right.hand.side, left.hand.sides, groups) {
-    .Call("group_lm_dataframe", panel, right.hand.side, left.hand.sides, groups, PACKAGE="fast.lm")
+group.lm.df <- function(panel, right.hand.side, left.hand.sides, groups, blend) {
+    .Call("group_lm_dataframe", panel, right.hand.side, left.hand.sides, groups, blend, PACKAGE="fast.lm")
 }
