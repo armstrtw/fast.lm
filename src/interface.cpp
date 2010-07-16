@@ -134,7 +134,7 @@ SEXP expanding_lm_dataframe(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP lef
 
 // assumes that panel_sexp is already sorted by asofdate
 SEXP expanding_panel_dataframe(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP left_hand_sides_sexp, SEXP asofdate_column_sexp, SEXP min_dates_sexp) {
-  SEXP ans;
+  SEXP ans, ans_dts, klass, dimnames;
   if(TYPEOF(min_dates_sexp) != INTSXP) {
     cerr << "min.dates must be an integer." << endl;
     return R_NilValue;
@@ -160,7 +160,22 @@ SEXP expanding_panel_dataframe(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP 
   vec x;
   int ans_NR = unique_dates.size()  - min_dates + 1;
   PROTECT(ans = allocMatrix(REALSXP, ans_NR, NC));
+  PROTECT(ans_dts = allocVector(REALSXP, ans_NR));
+  setAttrib(ans,install("dates"),ans_dts);
+
+  PROTECT(klass = allocVector(STRSXP, 1));
+  SET_STRING_ELT(klass, 0, mkChar("fts"));
+  classgets(ans, klass);
+
+  PROTECT(klass = allocVector(STRSXP, 1));
+  SET_STRING_ELT(klass, 0, mkChar("POSIXct"));
+  classgets(ans_dts, klass);
+
+  PROTECT(dimnames = allocVector(VECSXP, 2));
+  SET_VECTOR_ELT(dimnames, 1, left_hand_sides_sexp);
+  dimnamesgets(ans, dimnames);
   double* ans_ptr = REAL(ans);
+  double* ans_dts_ptr = REAL(ans_dts);
 
   // data cutoff for regression (start at row 0)
   double* subset = dts;
@@ -170,10 +185,12 @@ SEXP expanding_panel_dataframe(SEXP panel_sexp, SEXP right_hand_side_sexp, SEXP 
     for(int j = 0; j < NC; j++) {
       ans_ptr[j*ans_NR] = x[j];
     }
+    *ans_dts_ptr = unique_dates[i];
+    ++ans_dts_ptr;
     ++ans_ptr;
   }
   delete []scratch;
-  UNPROTECT(1);
+  UNPROTECT(5);
   return ans;
 }
 
